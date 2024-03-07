@@ -23,9 +23,9 @@ aAdd(aEmpresa,{"01","02","03","04","05","06","07","08","09","10","11","12","13",
 	lExecJob := .T.
 	aMsgSch  := {}
 	aFA205R  := {}
-	RpcSetEnv('01', '0101', Nil, Nil, Nil, "FIN")
+//	RpcSetEnv('01', '0101', Nil, Nil, Nil, "FIN")
 		FA435JOB() 
-	RpcClearEnv()
+//	RpcClearEnv()
 //Next nEmpresa
 Return
 
@@ -162,12 +162,12 @@ Do While (cAlias)->(!Eof())
 					cPathArq := cDirArq + cArquivo
 					cPathBkp := cDirBkp + cArquivo
 					If !_CopyFile(cPathArq, cPathBkp) //copia o arquivo para o diretorio de backup
-						ConOut(STR0003 + cPathArq + STR0004 + cDirBkp) // "Não foi possível copiar o arquivo " # " para o diretório "
+						ConOut("Não foi possível copiar o arquivo " + cPathArq + " para o diretório " + cDirBkp) // "Não foi possível copiar o arquivo " # " para o diretório "
 					Else
 						// Exclui o arquivo processado.
 						If FErase(cPathArq) < 0
-							ConOut(STR0005 + cPathArq) // "Não foi possível excluir o arquivo "
-							ConOut("fErase: " + STR0006 + cValToChar(FError()))  // "Erro "
+							ConOut("Não foi possível excluir o arquivo " + cPathArq) // "Não foi possível excluir o arquivo "
+							ConOut("fErase: " + "Erro " + cValToChar(FError()))  // "Erro "
 						EndIf
 					EndIf
 				EndIf
@@ -182,7 +182,7 @@ Do While (cAlias)->(!Eof())
 					cPathArq := cDirArq + cArquivo
 					cPathInc := cDirInc + cArquivo		
 					If !_CopyFile(cPathArq, cPathInc) //copia o arquivo para o diretorio de Inconsistencia.
-						ConOut(STR0003 + cPathArq + STR0004 + cDirInc) // "Não foi possível copiar o arquivo " # " para o diretório "
+						ConOut("Não foi possível copiar o arquivo " + cPathArq + " para o diretório " + cDirInc) // "Não foi possível copiar o arquivo " # " para o diretório "
 					Else
 						FErase(cPathArq)
 					EndIf	

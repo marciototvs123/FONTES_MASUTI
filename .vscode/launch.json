@@ -20,5 +20,6 @@
 			"label": "sigafin"
 		}
 	],
-	"lastProgramExecuted": "sigafin"
+	"lastProgramExecuted": "<cancel>",
+	"lastProgramArguments": []
 }
