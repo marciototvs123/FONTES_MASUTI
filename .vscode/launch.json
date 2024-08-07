@@ -18,8 +18,16 @@
 		},
 		{
 			"label": "sigafin"
+		},
+		{
+			"label": "U_AGR000"
+		},
+		{
+			"label": "U_MAS000"
+		},
+		{
+			"label": "SIGACTB"
 		}
 	],
-	"lastProgramExecuted": "<cancel>",
-	"lastProgramArguments": []
+	"lastProgramExecuted": "SIGACTB"
 }

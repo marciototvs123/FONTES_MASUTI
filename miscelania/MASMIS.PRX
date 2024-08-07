@@ -1,0 +1,57 @@
+#INCLUDE "PROTHEUS.CH"
+#INCLUDE "FWMVCDEF.CH"
+#Include "msobject.ch"
+#Include "rwmake.ch"
+#Include "topconn.ch"
+#Include 'PRTOPDEF.ch'
+
+/*
++----------------------------------------------------------------------------+
+!Descricao         ! Programas Com Funcoes Distintas no sistema              !
++------------------+---------------------------------------------------------+
+!Programa          ! MASMIS                                                  !
++------------------+---------------------------------------------------------+
+!Autor             ! Marcio Da Silva                                         !
++------------------+---------------------------------------------------------+
+!Empresa           ! TOTVS                                                   !
++------------------+---------------------------------------------------------+
+!Data de Criacao   ! 05/08/2024                                              !
++------------------+---------------------------------------------------------+
+*/
+User Function MASMIS01(cDebIni,cDebFin,cCreIni,cCreFin)
+Local cQuery    := ''
+Local cTrb	    := GetNextAlias()
+Local aSaldo    :={0,0,0,0,0,0,0,0}
+
+cDebIni := IIF(Type("cDebIni")=="U",'',cDebIni)
+cDebFin := IIF(Type("cDebFin")=="U",'',cDebFin)
+cCreIni := IIF(Type("cCreIni")=="U",'',cCreIni)
+cCreFin := IIF(Type("cCreFin")=="U",'',cCreFin)
+
+cDebIni := "35103033"
+cDebFin := "35103033"
+cCreIni := "13301098"
+cCreFin := "13301098"
+
+cQuery := " SELECT SUM(CT2_VALOR) CT2_VALOR "
+cQuery += " FROM "+RetSqlName("CT2")+" CT2 "
+cQuery += " WHERE CT2_DATA = '"+DTOS(MV_PAR05)+"' "
+cQuery += " AND  D_E_L_E_T_ = ' ' "
+cQuery += " AND (CT2_DEBITO >= '"+Alltrim(cDebIni)+"' AND CT2_DEBITO <= '"+Alltrim(cDebFin)+"') AND (CT2_CREDIT >= '"+Alltrim(cCreIni)+"' AND CT2_CREDIT <= '"+Alltrim(cCreFin)+"') "
+
+cQuery := ChangeQuery(cQuery)		
+
+If Select(cTRB) > 0
+	dbSelectArea(cTRB)
+	(cTRB)->(dbCloseArea())
+Endif
+
+dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cTRB,.T.,.F.)
+dbSelectArea(cTRB)
+DbGoTop()
+If !Eof()
+    aSaldo[1] :=  (cTRB)->CT2_VALOR
+Endif 
+Return(aSaldo)
+
+

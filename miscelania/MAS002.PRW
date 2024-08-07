@@ -1,5 +1,9 @@
 #include "protheus.ch"
 #include "fina435.ch"
+#Include "AP5MAIL.CH"
+#include "FINA205.ch"
+
+
 
 /*/{Protheus.doc} FINA435
 Retorno de comunicação bancária a pagar - via Job.
@@ -17,15 +21,16 @@ Private lExecJob := .T.
 Private aMsgSch  := {}
 Private aFA205R  := {}
 
-aAdd(aEmpresa,{"01","02","03","04","05","06","07","08","09","10","11","12","13","30","40","60","98"})
+//aAdd(aEmpresa,{"01","02","03","04","05","06","07","08","09","10","11","12","13","30","40","60","98"})
+
 
 //For nEmpresa := 1 to Len(aEmpresa)
 	lExecJob := .T.
 	aMsgSch  := {}
 	aFA205R  := {}
-//	RpcSetEnv('01', '0101', Nil, Nil, Nil, "FIN")
+	RpcSetEnv('01', '050101', Nil, Nil, Nil, "FIN")
 		FA435JOB() 
-//	RpcClearEnv()
+	RpcClearEnv()
 //Next nEmpresa
 Return
 
@@ -39,7 +44,7 @@ Static Function FA435JOB()
 
 Local cPerg	:= "AFI430"
 Local tRetPg:= .T.
-Local aVetPar // vetor das perguntas
+//Local aVetPar // vetor das perguntas
 Local cQuery  // query de bancos que serao executados automaticamente
 Local cAlias  // alias temporario dos banco que serao executados
 Local cBarra := If(IsSrvUnix(), "/", "\")
@@ -75,9 +80,9 @@ cQuery += "AND SEE.D_E_L_E_T_ = ' ' "
 //cQuery += "ORDER BY EE_DIRREC"
 
 cAlias := MPSysOpenQuery(ChangeQuery(cQuery))
-
 Do While (cAlias)->(!Eof())
 	// Mantém posicionado pois o FINA430 vai utilizar estas informações.
+
 	SEE->(dbGoto((cAlias)->REGSEE))
 
 	// Verifica se todos os parâmetros necessários foram preechindos e grava no log.
@@ -99,6 +104,7 @@ Do While (cAlias)->(!Eof())
 		aArq := Directory(cDirArq + "*." + AllTrim(sEE_EXTRET) + "*")
 
 		For nA := 1 to Len(aArq)
+
 			// Armazena o nome do arquivo nos parâmetros.
 			cArquivo := aArq[nA, 1]
 
@@ -119,7 +125,6 @@ Do While (cAlias)->(!Eof())
 			//³ MV_PAR10: Padrao Cnab          ? Modelo1 Modelo 2  ³
 			//³ MV_PAR11: Processa filiais     ? Modelo1 Modelo 2  ³
 			//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
-
 			// Atualiza o pergunte do FINA200 de acordo com a tabela de bancos
 			aVet650 := {{'mv_par01', 2					},; // 01	Mostra Lanc Contab ?
 						{'mv_par02', Val(SEE->EE_AGLCTB)},; // 02	Aglut Lancamentos ?
@@ -134,6 +139,7 @@ Do While (cAlias)->(!Eof())
 						{'mv_par11', Val(SEE->EE_PROCFL)},; // 11	Processa Filial?
 						{'mv_par12', 2					}}  // 12	Considera Multiplas naturezas ?
 
+
 			// Controle de mensagens de erro.
 			aMsgSch := {}
 
@@ -145,7 +151,7 @@ Do While (cAlias)->(!Eof())
 			tRetPg := u_MAS001(1,aVet650)
 
 			// Envia e-mail (FINA205) das mensagens de erro
-			FA205MAIL("Retorno Bancario Automatico (Pagar)", cDirArq + cArquivo, aMsgSch) // 
+			u_zFA205MAIL("Retorno Bancario Automatico (Pagar)", cDirArq + cArquivo, aMsgSch) // 
 
 
 //ee_incpag = C:\CNAB\ERR_TAU     
@@ -156,7 +162,7 @@ Do While (cAlias)->(!Eof())
 			If lDirInc
 				cDirInc := Alltrim(SEE->EE_INCPAG)
 			EndIf
-	
+
 			If Len(aMsgSch) == 0
 				If !Empty(cDirBkp)
 					cPathArq := cDirArq + cArquivo
@@ -275,4 +281,108 @@ if lErrVld
 Endif		
 
 Return( lErrVld )
+
+
+**********************************************************
+User Function zFA205MAIL(cTitulo,cArq, aMsgSch, lEnvAtch) // Envia email
+*************
+Local aArea			:= GetArea()
+Local lSendMail	:= .F.
+Local nAux			:= 0
+Local cSubject		:= ""
+Local cBody			:= ""
+Local	cMsgErr     := ""
+Local aDestE		:= {}
+Local cDestE      := GetMv("MV_RETMAIL") // destinatarios do email de retorno automatico via schedule
+Local cAttach     := ""
+Local cFile		  := ""				
+
+Default cTitulo := "Retorno Bancario Automatico"
+Default cArq    := "ARQ.NAO.INFORMADO"
+Default lEnvAtch:= .T.  // envia ou nao o arquivo como attach
+
+// se o parametro de destinatarios de envio de email estiver vazio ignora o envio
+If ValType(cDestE) <> "C" .or. Empty(cDestE)
+	Return Nil
+EndIf
+
+aDestE := StrTokArr(cDestE,";")
+If Len(aDestE) == 0
+	Return Nil
+EndIf
+
+cSubject	:= cTitulo + ' - Arquivo: '+cArq + '  Processamento: ' +Dtoc(dDataBase) + ' - ' + Time()
+
+// corpo principal do email com o resumo do emvio
+cBody	:= '<HTML>'
+cBody	+= ' <HEAD>'
+cBody	+= '  <TITLE>'+cTitulo+' - Arquivo: '+cArq+'</TITLE>'
+cBody	+= ' </HEAD>'
+cBody	+= ' <BODY>'
+cBody	+= '  <H1>'
+cBody	+= '   <FONT SIZE="4" COLOR="#000099">'
+cBody	+= '    <B>'+cTitulo+'</B>'
+cBody	+= '   </FONT>'
+cBody	+= '  </H1>'
+cBody += '  <BR>
+cBody	+= '   <FONT SIZE="3" COLOR="#000099">'
+cBody	+= '    <B>Arquivo: '+cArq+'</B>'
+cBody	+= '   </FONT>'
+cBody	+= '  <H1><HR></H1>'
+
+// adiciona as mensagens contidas no vetor
+If Len(aMsgSch) >= 0
+	cBody	+= '  <H1>'
+	cBody	+= '   <FONT SIZE="3" COLOR="#000000">'
+	cBody	+= '    Mensagens do Processamento : '
+	cBody	+= '   </FONT>'
+	cBody	+= '  </H1>'
+
+	//??????????
+	//?ONTAGEM DO E-MAIL?
+	//??????????
+	if Len(aMsgSch) == 0
+		cBody += '<BR>&nbsp;&nbsp;-&nbsp;Processamento sem inconsistencias'
+	Else
+		For nAux := 1 To Len(aMsgSch)
+			cBody += '<BR>&nbsp;&nbsp;-&nbsp;' + aMsgSch[nAux]
+		Next
+	Endif	
+	cBody	+= '  <H1><HR></H1>'
+EndIf
+
+cBody	+= '  <H1>'
+cBody	+= '   <FONT SIZE="2" COLOR="#FF0000">'
+cBody	+= '    '+cSubject
+cBody	+= '   </FONT>'
+cBody	+= '  </H1>'
+cBody	+= ' </BODY>'
+cBody	+= '</HTML>'
+
+
+// processa o relatorio de processamento e grava fisicamente no disco retornando o nome com o caminho
+if lEnvAtch
+	cPath		:=ALLTRIM(GETMV('MV_RELT'))
+	cFile	 	:= Substr(cArq,rat("\",cArq)+1,len(cArq))          
+	cFile		:= Substr(cFile,1, rat(".",cFile)-1)
+	if File(cPath+cFile+".PDF")
+		cAttach := cPath+cFile+".PDF"
+	Endif	
+Endif
+// se nao tem assunto, ou corpo, ou destinatario - nao envia email para nao dar erro
+If ! Empty(cSubject) .and. !Empty(cBody) .and. !Empty(aDestE)
+
+     lSendMail := U_GEnvMail(cDestE, "RETORNO CNAB ITAU" , cBody , {}, /*MsgLog*/.F. , /*lTLS*/ .T. )
+
+//	lSendMail 	:= FA205SENDMAIL(aDestE, cSubject, cBody, cAttach)
+
+  	If !lSendMail .And. !Empty(cMsgErr)
+  		ConOut(cMsgErr)  //-- Ocorreu um problema no envio do e-mail:
+  	EndIf
+EndIf
+
+RestArea(aArea)
+
+Return Nil
+
 
