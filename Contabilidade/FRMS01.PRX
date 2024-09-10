@@ -18,27 +18,25 @@
 !Data de Criacao   ! 05/08/2024                                              !
 +------------------+---------------------------------------------------------+
 */
-User Function MASMIS01(cDebIni,cDebFin,cCreIni,cCreFin)
+User Function FRMS01()
 Local cQuery    := ''
 Local cTrb	    := GetNextAlias()
 Local aSaldo    :={0,0,0,0,0,0,0,0}
 
-cDebIni := IIF(Type("cDebIni")=="U",'',cDebIni)
-cDebFin := IIF(Type("cDebFin")=="U",'',cDebFin)
-cCreIni := IIF(Type("cCreIni")=="U",'',cCreIni)
-cCreFin := IIF(Type("cCreFin")=="U",'',cCreFin)
+cDebIni := Alltrim(CTS->CTS_CT1INI)
+cDebFim := IIf(!Empty(CTS->CTS_CT1FIM), Alltrim((CTS->CTS_CT1FIM)),'ZZZZZZZZZZZZZ')
 
-cDebIni := "35103033"
-cDebFin := "35103033"
-cCreIni := "13301098"
-cCreFin := "13301098"
+cCreFin := PARAMIXB[1]
 
 cQuery := " SELECT SUM(CT2_VALOR) CT2_VALOR "
 cQuery += " FROM "+RetSqlName("CT2")+" CT2 "
-cQuery += " WHERE CT2_DATA = '"+DTOS(MV_PAR05)+"' "
-cQuery += " AND  D_E_L_E_T_ = ' ' "
-cQuery += " AND (CT2_DEBITO >= '"+Alltrim(cDebIni)+"' AND CT2_DEBITO <= '"+Alltrim(cDebFin)+"') AND (CT2_CREDIT >= '"+Alltrim(cCreIni)+"' AND CT2_CREDIT <= '"+Alltrim(cCreFin)+"') "
-
+cQuery += " WHERE  D_E_L_E_T_ = ' ' "
+If "FIN960" $ Alltrim(PROCNAME(4))
+	cQuery += " AND CT2_DATA >= '"+DTOS(FR4->FR4_DTINI)+"' AND CT2_DATA <= '"+DTOS(FR4->FR4_DTFIM)+"' "
+Else 
+	cQuery += " AND CT2_DATA = '"+DTOS(MV_PAR05)+"' "
+EndIf 
+cQuery += " AND (CT2_DEBITO >= '"+Alltrim(cDebIni)+"' AND CT2_DEBITO <= '"+Alltrim(cDebFim)+"') AND CT2_CREDIT = '"+Alltrim(cCreFin)+"' "
 cQuery := ChangeQuery(cQuery)		
 
 If Select(cTRB) > 0
@@ -51,6 +49,11 @@ dbSelectArea(cTRB)
 DbGoTop()
 If !Eof()
     aSaldo[1] :=  (cTRB)->CT2_VALOR
+    If "FIN960" $ Alltrim(PROCNAME(4))
+        aSaldo    :={0,0,0,0,0,0,0,0}
+        aSaldo[5] :=  (cTRB)->CT2_VALOR
+    EndIf 
+	
 Endif 
 Return(aSaldo)
 

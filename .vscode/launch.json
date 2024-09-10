@@ -7,27 +7,21 @@
 			"name": "Depuração do idioma TOTVS",
 			"program": "${command:AskForProgramName}",
 			"cwb": "${workspaceFolder}",
-			"smartclientBin": "C:\\TOTVS12_33\\Protheus\\AMBIENTE_EMPRESAS_ICLOUD\\VITAMAIS\\Desenvolvimento\\smartclient\\smartclient.exe",
+			"smartclientBin": "C:\\TOTVS12_33\\Protheus\\AMBIENTE_EMPRESAS_ICLOUD\\MASSUTI\\smartclient\\smartclient.exe",
 			"isMultiSession": true,
 			"enableTableSync": true
 		}
 	],
 	"lastPrograms": [
 		{
-			"label": "SIGACFG"
-		},
-		{
 			"label": "sigafin"
 		},
 		{
-			"label": "U_AGR000"
+			"label": "u_MAS003"
 		},
 		{
-			"label": "U_MAS000"
-		},
-		{
-			"label": "SIGACTB"
+			"label": "u_MAS004"
 		}
 	],
-	"lastProgramExecuted": "SIGACTB"
+	"lastProgramExecuted": "u_MAS004"
 }
