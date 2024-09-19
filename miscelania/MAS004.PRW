@@ -1,164 +1,81 @@
-
 #INCLUDE "PROTHEUS.CH"
 #include "fileio.ch"
 #include "totvs.ch"
 #INCLUDE "FWMVCDEF.CH"
 #INCLUDE "FWLIBVERSION.CH"
 
+#INCLUDE	"DIRECTRY.CH"
+#INCLUDE	"AUTODEF.CH"
+#INCLUDE	"STBFISCALMENU.CH"
+#INCLUDE	"TOTVS.CH"
+#INCLUDE	"XMLXFUN.CH"
+#Include 'Tbiconn.ch'
+#Include 'Tbicode.ch'
+#Include 'TOTVS.CH'
+
 User Function MAS004()
 
+//    Local cURL := "https://trust-sandbox.api.santander.com.br/auth/oauth/v2/token"
     Local cURL := "https://trust-sandbox.api.santander.com.br/auth/oauth/v2/token"
     Local nTimeOut := 120
     Local aHeadStr := {}
     Local cPostRet := ""
-    Local cCertPath := "C:\Cert\Cert.pfx" // Caminho do certificado PFX
-    Local cClientId := "yTogoe1bO2K0s6u40f80MHOMRyIN6Efm"
+    //Local cCertPath := "\system\cert\certif_ca.pem" 
+    Local cCertPath := "\system\cert\certifcert.pem" 
+    Local cCertKEY  := "\system\cert\certifkey.pem" 
     Local cClientSecret := "5Pto3Rq1nKhR4QrB"
+    Local cClientId := "yTogoe1bO2K0s6u40f80MHOMRyIN6Efm"
     Local cCertPassword := "26595181000130" // Senha do certificado
-	Local cHeaderRet := ""
-	Local cPOSTParms := ""
-	Local cKey   := ""
+    Local cHeaderRet := ""
+    Local cPOSTParms := ""
 
-    // Cabeçalhos HTTP
-    AAdd(aHeadStr, "Content-Type: application/x-www-form-urlencoded")
+  IF TYPE("CEMPANT")=="U"
+		PREPARE ENVIRONMENT EMPRESA '99' FILIAL '01'
+	ENDIF
 
+    // Cabe alhos HTTP
+    AAdd(aHeadStr, 'Content-Type: application/x-www-form-urlencoded')
+    //AAdd(aHeadStr, 'Cookie: _abck=217057DB16811D48F457F47834C1BFD2~-1~YAAQR/vSF1/vkOGRAQAAQ9RBBQyW9E6LHOGgILgvGJa0kZUxdh+NMuYI1KhKUtP/0UQup7biUbpkxIo9A4Ty4lmv9+Lw0bBzK5ZJ/DCERqgRtfaQ8/5LQIblXmrrERC3ROLLQw9PzLzRrIroAHQhj68m5Gh7dBGSDEyaHyrU3OhSE4duiAMXLKM4o6JlCj/+/6/jbwy1XzgHe8/GqukXCmsEp/DPbydnjvfE7nSfjiPQvErjf/piKC946pQ9KAZ9/vCN7Vk18DaFiPyvIym5UaIl+UUQiHJVEjk4CmDcjLaG5r2j8rit4Nc3G3X0lK4qhJS21ZgQL3H3/FnJrBNvkDGqcB1LQvao+/GpEkTEvCTW5aW2vqykI7KTYVrzKE7cef8PizoqqzqJ8kiV4xn3ddNRFEcviby3mz8Y0S6Pe6g9HxLPPkxk0C8qaJSsBQ==~-1~-1~-1; bm_sz=9FC8A775EAEE224A27100F3FAE98621D~YAAQR/vSF2DvkOGRAQAAQ9RBBRlqG0ZuBE9KujJTUcgLF0+PNGxXp15kKuqWA7x8aSjO2VmYAQGE0C6xqjC88EweMURKEb7TwfeJllOEJTte6MkJqx7SRKLIeCRBfGuax2VSN/dHIMv25TIZfpARusmsM4ZKvoVObGnRGRFlbXOgSLoCpF8OLk1JAn2H6ORoaG4E6l0abWxtiKy6Ypd6DSZU6gbAepWgrOGyDN9KUVW81moPxaMTY1rqsLiW2Ijvp9qOR7qY+A63Zpb7KrAKP1WfAPHMIL4z2VzUVlkMZwUXnFvjPVTrCA+iaVMp2T7DXd+nSdKWeYrccn4552lwL80/TRmmiQ7e6vDZgVOJOuvnzcAbAA==~4469043~4474168')
 
-    // Corpo da requisição (formato x-www-form-urlencoded)
-   // cPOSTParms := "client_id=" + cClientId + "& client_secret=" + cClientSecret+"& grant_type=client_credentials"
- cPOSTParms := "client_id=yTogoe1bO2K0s6u40f80MHOMRyIN6Efm&client_secret=5Pto3Rq1nKhR4QrB&grant_type=client_credentials"
+    // Par metros de POST
+    cPOSTParms := "grant_type=client_credentials&client_id=" + cClientId + "&client_secret=" + cClientSecret 
+    //cPOSTParms := 'grant_type=client_credentials&client_id=yTogoe1bO2K0s6u40f80MHOMRyIN6Efm&client_secret=5Pto3Rq1nKhR4QrB'
 
-    // Realizando o POST com HTTPS
-   // cPostRet := HTTPSPost(cURL, cBody, cCertPath, cCertPath, cCertPassword, nTimeOut, aHeadOut, @cHeadRet)
+    // Realiza a requisi  o HTTPS POST com o certificado
+    cPostRet := HTTPSPost(cURL, cCertPath, cCertKEY , cCertPassword  , "", cPOSTParms, nTimeOut, aHeadStr, cHeaderRet)
 
-//    cPostRet := HTTPSPost(cURL, cCertPath, cKey, cCertPassword, cGETParms, cPOSTParms, nTimeOut, aHeadStr, cHeaderRet, .T.)	
-
-
-    // Corpo da requisição (formato x-www-form-urlencoded)
-  //  cPOSTParms := "client_id=" + cClientId + "&client_secret=" + cClientSecret+"&grant_type=client_credentials"
-
-    // Realizando o POST com HTTPS
-    cPostRet := HTTPSPost(cURL, cCertPath, "", cCertPassword, "", cPOSTParms, nTimeOut, aHeadStr, cHeaderRet, .F.)
-
-
-	//cPostRet := HTTPSPost(cURL, cCert,      cKey, cPassPhrase ,          , cXml      ,120      , aHeadOut, @cHeadRet, .T. )	
-	
+    // Verifica o retorno
     If Empty(cPostRet)
         Conout("Falha ao realizar HTTPSPost")
     Else
-        Conout("Sucesso ao realizar HTTPSPost")
-      //  VarInfo("Resposta", cPostRet) // Mostra a resposta com o token
+        oParser := Nil // private
+        FwJsonDeserialize(cPostRet,@oParser)    
+        u_MAS004A(Alltrim(oParser:access_token))
     EndIf
-
-    //VarInfo("Header", cHeadRet) // Mostra os cabeçalhos retornados
 
 Return
 
+User Function MAS004A(cToken)
 
-/*
-    Local cUrlToken := "https://trust-sandbox.api.santander.com.br/auth/oauth/v2/token" // URL do Santander para Sandbox
-    Local cClientId := "yTogoe1bO2K0s6u40f80MHOMRyIN6Efm"
-    Local cClientSecret := "secret 5Pto3Rq1nKhR4QrB"
-    Local cCertPath := "C:\Certificado\Certificiado.pfx" // Caminho do seu certificado
+    Local cUrl   := "https://trust-sandbox.api.santander.com.br/bank_account_information/v1/banks/39496739000160/statements/4257.000000002696"
+    Local cParam := "initialDate=2024-01-01&finalDate=2024-09-18&limit=3&offset=1"
+
+    Local aHeadStr := {}
+
+    Local cCertPath := "\system\cert\certifcert.pem" 
+    Local cCertKEY  := "\system\cert\certifkey.pem" 
     Local cCertPassword := "26595181000130" // Senha do certificado
-    Local oHttpClient := nil
-    Local cResponse := ""
-    Local cPostData := ""
-    Local oCert := nil
 
-    cPostData := "grant_type=client_credentials&client_id=" + cClientId + "&client_secret=" + cClientSecret
+    nTimeOut 	:= 300
+    cHeaderGet 	:= ""
 
-    // Criação do objeto HTTP
-    oHttpClient := HttpClient():New(cUrlToken)
+    aHeadStr:= {}
 
-    // Configuração do certificado
-    oCert := TLSClientCertificate():New(cCertPath, cCertPassword)
+    AAdd( aHeadStr, "Authorization: Bearer " + cToken)
+	aadd( aHeadStr, "Content-Type: application/json")
+	aadd( aHeadStr, "X-application-Key: yTogoe1bO2K0s6u40f80MHOMRyIN6Efm")
 
-    // Configura o certificado para a requisição
-    oHttpClient:SetTLSCertificate(oCert)
+    cUrl   := "https://trust-sandbox.api.santander.com.br/bank_account_information/v1/banks/39496739000160/statements/4257.000000002696?initialDate=2024-01-01&finalDate=2024-09-18&limit=3&offset=1"
 
-    // Envia a requisição POST com os parâmetros
-    oHttpClient:Post(cPostData, "application/x-www-form-urlencoded")
-
-    // Verifica se houve sucesso na requisição
-    If oHttpClient:nStatusCode == 200
-        cResponse := oHttpClient:cBody
-        Conout("Token gerado com sucesso: " + cResponse)
-    Else
-        Conout("Erro ao gerar token. Status: " + Str(oHttpClient:nStatusCode))
-        Conout("Resposta: " + oHttpClient:cBody)
-    EndIf
-a:= 1
-
-
-
-	Local sCgc      := "39496739000160"
-	Local sAgencia  := "4257"
-	Local sConta    := "000000002696"
-	Local cURI      := ""
-	Local sParam    := ""
-	Local dData     := Date()-1
-	Local cResource := ""
-	Local aHeader   := {}
-
-
-	cURI      := "https://trust-sandbox.api.santander.com.br"
-
-	cResource := "/auth/oauth/v2/token"
-
-	oRest := FwRest():New(cURI)
-
-	oRest:SetPath(cResource)
-
-	aAdd(aHeader, 'Content-Type: application/x-www-form-urlencode')
-
-	cSend := 'grant_type=client_credentials&scope=cobrancas.boletos-requisicao cobrancas.boletos-info'
-
-oRest:SetPostParams(cSend)
-oRest:Post(aHeader)
-
-
-	sErro  := u_AGRMIS18(cURI,"POST","") 
-
-	cURI      := "https://trust-sandbox.api.santander.com.br/bank_account_information/v1/banks/"+sCgc+"/statements/"+sAgencia+"."+sConta+"?"
-
-	While Empty(sParam) 
-		If DataValida(dData) == dData
-			sParam    := "initialDate="+FWTimeStamp(3, dData, "")+"&finalDate ="+FWTimeStamp(3, dData, "")+"&_limit=49&_offset =1"
-		Else 
-			dData := dData - 1
-		EndIf 
-	EndDo
-	sErro  := u_AGRMIS18("Z12",'POST',"/api/AlvoBiologico",sBody_API)  // Rotina API para OPENK - Sistema Portal CLientes / Representantes
-
-
-  
-***********************************************************
-User Function AGRMIS18(cURI,sMetodo)  // Rotina para fazer a transmferencia de dados via API
-*************
-Local sErro     := ""
-Local aCabHea   := {}
-
-    AAdd(aCabHea, "Content-Type: application/json; charset=UTF-8")
-    aadd(aCabHea, "Authorization: Bearer")
-    aadd(aCabHea, "access-token:"  + sTokOpenK)
-    oRest := FwRest():New(cURI)  
-    jJson := JsonObject():new()
-    oRest:SetPath(cResource)
-    If sMetodo == 'POST'
-        oRest:SetPostParams(fAGRMS19(sBody))
-        If !(oRest:Post(aCabHea))
-            sErro := cResource + ' - ' + Alltrim(oRest:getResult())
-        EndIf
-    ElseIf sMetodo == 'PUT'    
-        If !(oRest:put(aCabHea,fAGRMS19(sBody))) // quando retorno .t. pq o produto nao esta liberado
-            sErro := cResource + ' - ' + Alltrim(oRest:getResult())
-        EndIf     
-    EndIf  
-    If !Empty(sErro)   
-        u_AGRMIS45(sBody, cURI, cResource, sErro)
-    EndIf 
-Return(sErro)
-
-*/
-
-Return()
+   	cRetorno := HTTPSGet( cUrl, cCertPath, cCertKEY , cCertPassword, cParam, nTimeOut, aHeadStr,@cHeaderGet)
+Return
